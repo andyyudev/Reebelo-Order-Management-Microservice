@@ -2,7 +2,7 @@
 
 ## Description
 
-Reebelo case study for order management microservice
+Reebelo case study for order management microservice (Please bear in mind that this is the first time I’ve used NestJS, so some implementations and design patterns might not be correct.)
 
 ## Clone project
 
@@ -78,17 +78,23 @@ Out of scope for this case study, but worth mentioning
   - Validate inventory information.
 
 - Update Orders
+  - Following the single responsibility principle, i would break down update orders into multiple methods.
+    - Update payment information.
+    - Update shipping information.
+    - Update shipment tracking information.
+    - ***I would remove update status endpoint entirely to avoid direct manipulation of the order status, so order status are triggered only by specific business events.
   - Handle order status conflict with order information being updated, or order has been deleted.
-  - Ability to extend update features, such as update payment information, update shipping address, etc.
   - Trigger update order status when order information changes.
   - Trigger notification service.
 
 - Update Order Status
+  - ***I would remove update status endpoint entirely to avoid direct manipulation of the order status, so order status are triggered only by specific business events.
   - Handle race condition when order has been deleted.
   - Allow batch update?
   - Trigger notification service.
 
 - Delete Orders
+  - Return http status code 204 after successful deletion, current NestJS returns standard 200 status.
   - Allow batch delete?
   - Implement soft delete to maintain data integrity.
   
