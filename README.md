@@ -70,10 +70,10 @@ Out of scope for this case study, but worth mentioning
 ## API Endpoints
 
 - Create Orders
-  - Implement idempotency to handle race condition. 
+  - Implement idempotency to handle race condition.
   - Retries for calling external services. (Not implemented)
-  - Validate customer information.
-  - Validate inventory information.
+  - Validate customer information. (Mock service)
+  - Validate inventory information. (Mock service)
 
 - Update Orders
   - Following the single responsibility principle, I would break down the order update process into multiple methods.
@@ -108,5 +108,53 @@ Out of scope for this case study, but worth mentioning
     - Sends email and app notifications related to orders.
 
 ## Infrastructure & Deployment Strategies
-- ???
-- ???
+
+### Compute
+
+- High Availability
+  - Amazon ECS will deploy the microservice across multiple availability zones to ensure uptime.
+- Scalability
+  - ECS Auto Scaling adjusts the number of instances based on traffic.
+- Security
+  - ECS tasks run in a VPC with security groups, and IAM roles restrict access to AWS resources.
+- Cost
+  - ECS Fargate or EC2 Spot Instances can be used to minimize costs by running tasks only when necessary.
+
+### Database
+
+- High Availability:
+  - Amazon RDS with Multi-AZ for failover and redundancy.
+- Scalability:
+  - RDS will use read replicas and auto-scaling for peak loads.
+- Security:
+  - Data encryption via AWS KMS, with restricted VPC access.
+- Cost Efficiency:
+  - Use RDS burstable instances or reserved instances to balance performance and cost.
+
+### API Gateway
+
+- High Availability:
+  - Amazon API Gateway ensures seamless failover and continuous operation.
+- Scalability:
+  - Automatically scales to handle increasing traffic without manual intervention.
+- Security:
+  - Integrated with Cognito for authentication and secure communication over HTTPS.
+- Cost Efficiency:
+  - Pay-per-request pricing ensures cost control based on usage.
+
+### Storage
+
+- High Availability:
+  - Amazon S3 stores assets with automatic replication across availability zones.
+- Security:
+  - Encrypted data and strict bucket policies.
+- Cost Efficiency:
+  - S3’s lifecycle policies to archive infrequent data and reduce storage costs.
+
+### Queues (Async operations)
+
+Use Amazon SQS to offload asynchronous tasks such as payment processing, shipping updates, and sending notifications. This improves API response time by handling background tasks without blocking the user-facing requests.
+
+### Caching
+
+Use caching (e.g., ElastiCache Redis) for frequently accessed data like inventory, customer details, and order statuses to reduce load and improve response times.
