@@ -23,7 +23,18 @@ export class OrdersService {
   ) {}
 
   // Create a new order
-  async createOrder(createOrderDto: CreateOrderDto): Promise<Order> {
+  async createOrder(
+    createOrderDto: CreateOrderDto,
+    idempotencyKey: string,
+  ): Promise<Order> {
+    // Check if order with the same idempotency key already exists
+    const existingOrder = await this.ordersRepository.findOneBy({
+      idempotencyKey,
+    });
+    if (existingOrder) {
+      return existingOrder; // Return the existing order if found
+    }
+
     // Validate customer exists with customer service
     try {
       const customer = await this.customersService.getCustomerDetails(
@@ -64,6 +75,7 @@ export class OrdersService {
     try {
       const order = this.ordersRepository.create({
         ...createOrderDto,
+        idempotencyKey,
         items: createOrderDto.items.map((item) => ({
           productId: item.productId,
           price: item.price,

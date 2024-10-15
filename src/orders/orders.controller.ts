@@ -3,11 +3,13 @@ import {
   Post,
   Put,
   Delete,
+  Headers,
   Body,
   Param,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dtos/create-order.dto';
 import { UpdateShipmentTrackingDto } from './dtos/update-shipment-tracking.dto';
@@ -19,8 +21,15 @@ export class OrdersController {
 
   // Create a new order
   @Post()
-  async createOrder(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.createOrder(createOrderDto);
+  async createOrder(
+    @Body() createOrderDto: CreateOrderDto,
+    @Headers('idempotency-key') idempotencyKey: string,
+  ) {
+    // Generate a unique idempotency key if not provided
+    if (!idempotencyKey) {
+      idempotencyKey = uuidv4();
+    }
+    return this.ordersService.createOrder(createOrderDto, idempotencyKey);
   }
 
   // Placeholder for updating payment information

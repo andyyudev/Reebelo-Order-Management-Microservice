@@ -27,6 +27,9 @@ export class Order {
   @Column({ default: 'pending' })
   status: string; // Order status, defaulting to 'pending'
 
+  @Column({ unique: true, nullable: true })
+  idempotencyKey: string;
+
   @OneToMany(() => OrderItem, (orderItem) => orderItem.order, { cascade: true })
   items: OrderItem[]; // One-to-many relationship with OrderItem
 

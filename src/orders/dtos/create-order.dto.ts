@@ -31,6 +31,9 @@ export class CreateOrderDto {
   @IsNotEmpty()
   customerId: string; // Customer ID, to match the Order entity
 
+  @IsString()
+  idempotencyKey?: string; // Idempotency key to prevent duplicate orders
+
   @IsNumber()
   @IsNotEmpty()
   itemsTotal: number; // Total price of items before taxes and shipping

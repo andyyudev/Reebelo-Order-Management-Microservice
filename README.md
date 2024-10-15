@@ -4,6 +4,8 @@
 
 Reebelo case study for Order Management Microservice.
 
+All API endpoints are fully functional, and errors are properly caught; however, there is no column level validation in place for this demo.
+
 For demonstration purposes, this microservice uses TypeORM with SQLite database. In a production environment, it can be configured to use AWS database services such as Amazon RDS for relational data or DynamoDB for NoSQL storage.
 
 ** Please bear in mind that this is the first time I’ve used NestJS, so some implementations and design patterns might not be correct. **
@@ -57,47 +59,39 @@ $ npm run test:cov
 
 Out of scope for this case study, but worth mentioning
 
-- Authentication and Authorizations
-- API Rate Limiting
-  - Prevent abuse or unintentional overloading for each endpoints.
-- Logging and Monitoring
-- Service Resilience
-  - Implementing retries to calling external services.
-- Data Consistency and Integrity
-  - What type of database are we using? does it support ACID transactions or distributed locks to ensure data consistency and integrity?
-- Versioning
-  - How to handle version control?
-- Caching
-  - Add caching mechanism for frequently accessed data like inventory order customer information?
+- Authentication & Authorization: Secure access control using mechanisms like OAuth or JWT.
+- API Rate Limiting: Prevent abuse and ensure fair usage.
+- Logging & Monitoring: Track performance and detect issues early.
+- Service Resilience: Implement retries, timeouts, and circuit breakers for external service calls.
+- Data Consistency & Integrity: Ensure the database supports ACID transactions or distributed locks for reliable data handling.
+- API Versioning: Plan for version control to maintain backward compatibility.
+- Caching: Use caching for frequently accessed data (e.g., inventory, orders, customers).
 
 ## API Endpoints
 
 - Create Orders
-  - Implement idempotency to handle race condition.
-  - Retries for calling external services.
+  - Implement idempotency to handle race condition. 
+  - Retries for calling external services. (Not implemented)
   - Validate customer information.
   - Validate inventory information.
 
 - Update Orders
-  - Following the single responsibility principle, i would break down update orders into multiple methods.
-    - Update payment information.
-    - Update shipping information.
+  - Following the single responsibility principle, I would break down the order update process into multiple methods.
+    - Update payment information. (Added endpoint, but returns error message)
+    - Update shipping information. (Added endpoint, but returns error message)
     - Update shipment tracking information.
-    - ***I would remove update status endpoint entirely to avoid direct manipulation of the order status, so order status are triggered only by specific business events.
-  - Handle order status conflict with order information being updated, or order has been deleted.
-  - Trigger update order status when order information changes.
-  - Trigger notification service.
+    - ** I would remove the update status endpoint to prevent direct manipulation, ensuring status changes are triggered by specific business events only. **
+  - Handle order status conflicts when order information is updated or the order has been deleted.
+  - Trigger an order status update when order information changes.
+  - Trigger notification service. (Not implemented)
 
 - Update Order Status
-  - ***I would remove update status endpoint entirely to avoid direct manipulation of the order status, so order status are triggered only by specific business events.
-  - Handle race condition when order has been deleted.
-  - Allow batch update?
-  - Trigger notification service.
+  - ** I would remove the update status endpoint to prevent direct manipulation, ensuring status changes are triggered by specific business events only. **
+  - Trigger notification service. (Not implemented)
 
 - Delete Orders
   - Return http status code 204 after successful deletion, current NestJS returns standard 200 status.
-  - Allow batch delete?
-  - Implement soft delete to maintain data integrity.
+  - Implement soft delete to maintain data integrity. (Not implemented)
 
 ## Service Dependencies
 
@@ -106,11 +100,11 @@ Out of scope for this case study, but worth mentioning
     - Fetches customer details, including payment and shipping information.
   - Inventory Service
     - Manages product and stock availability checks.
-  - Payment Service
+  - Payment Service (Not implemented)
     - Processes payments for orders.
-  - Shipping Service
+  - Shipping Service (Not implemented)
     - Retrieves shipping rates and delivery updates.
-  - Notification Service
+  - Notification Service (Not implemented)
     - Sends email and app notifications related to orders.
 
 ## Infrastructure & Deployment Strategies

@@ -7,15 +7,8 @@ export class InventoryService {
     return {
       id: productId,
       name: 'Sample Product',
+      sku: 'SAMPLE-123',
       availableQuantity: 100,
-      variants: [
-        {
-          id: 'variant1',
-          color: 'red',
-          size: 'M',
-          price: 29.99,
-        },
-      ],
     };
   }
 
