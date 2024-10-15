@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from './order.entity';
@@ -20,13 +25,57 @@ export class OrdersService {
   // Create a new order
   async createOrder(createOrderDto: CreateOrderDto): Promise<Order> {
     // Validate customer exists with customer service
+    try {
+      const customer = await this.customersService.getCustomerDetails(
+        createOrderDto.customerId,
+      );
+      if (!customer) {
+        throw new NotFoundException(
+          `Customer with ID ${createOrderDto.customerId} not found`,
+        );
+      }
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error validating customer: ${error.message}`,
+      );
+    }
 
     // Validate inventory exists with inventory service
+    try {
+      for (const item of createOrderDto.items) {
+        const isAvailable =
+          await this.inventoryService.checkProductAvailability(
+            item.productId,
+            item.quantity,
+          );
+        if (!isAvailable) {
+          throw new BadRequestException(
+            `Product with ID ${item.productId} is out of stock`,
+          );
+        }
+      }
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error validating inventory: ${error.message}`,
+      );
+    }
 
     // Create the order
-    const order = this.ordersRepository.create(createOrderDto);
-
-    return this.ordersRepository.save(order);
+    try {
+      const order = this.ordersRepository.create({
+        ...createOrderDto,
+        items: createOrderDto.items.map((item) => ({
+          productId: item.productId,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+      });
+      return await this.ordersRepository.save(order);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Could not create order: ${error.message}`,
+      );
+    }
   }
 
   // Update shipment tracking information
@@ -34,24 +83,32 @@ export class OrdersService {
     orderId: string,
     updateShipmentTrackingDto: UpdateShipmentTrackingDto,
   ): Promise<Order> {
-    // Find the order
-    const order = await this.ordersRepository.findOne(orderId);
+    try {
+      // Find the order by ID
+      const order = await this.ordersRepository.findOneBy({ id: orderId });
 
-    // Validate order
-    if (!order) {
-      throw new NotFoundException(`Order with ID ${orderId} not found`);
+      // If no order is found
+      if (!order) {
+        throw new NotFoundException(`Order with ID ${orderId} not found`);
+      }
+
+      // Update the shipment tracking information
+      order.shipment = {
+        carrier: updateShipmentTrackingDto.carrier,
+        trackingNumber: updateShipmentTrackingDto.trackingNumber,
+      };
+
+      // Update the order status directly to 'shipped'
+      if (order.status !== 'shipped') {
+        order.status = 'shipped';
+      }
+
+      return this.ordersRepository.save(order);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Could not retrieve order: ${error.message}`,
+      );
     }
-
-    // Update the shipment tracking information
-    order.shipment = {
-      carrier: updateShipmentTrackingDto.carrier,
-      trackingNumber: updateShipmentTrackingDto.trackingNumber,
-    };
-
-    // Call update order status method to update the order status to shipped
-    await this.updateOrderStatus(orderId, { status: 'shipped' });
-
-    return this.ordersRepository.save(order);
   }
 
   // Update order status
@@ -59,32 +116,44 @@ export class OrdersService {
     orderId: string,
     updateOrderStatusDto: UpdateOrderStatusDto,
   ) {
-    // Find the order
-    const order = await this.ordersRepository.findOne(orderId);
+    try {
+      // Find the order by ID
+      const order = await this.ordersRepository.findOneBy({ id: orderId });
 
-    // Validate order
-    if (!order) {
-      throw new NotFoundException(`Order with ID ${orderId} not found`);
+      // If no order is found
+      if (!order) {
+        throw new NotFoundException(`Order with ID ${orderId} not found`);
+      }
+
+      // Update the order status
+      order.status = updateOrderStatusDto.status;
+
+      return this.ordersRepository.save(order);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Could not retrieve order: ${error.message}`,
+      );
     }
-
-    // Update the order status
-    order.status = updateOrderStatusDto.status;
-
-    return this.ordersRepository.save(order);
   }
 
   // Delete an order
   async deleteOrder(orderId: string) {
-    // Find the order
-    const order = await this.ordersRepository.findOne(orderId);
+    try {
+      // Find the order by ID
+      const order = await this.ordersRepository.findOneBy({ id: orderId });
 
-    // Validate order
-    if (!order) {
-      throw new NotFoundException(`Order with ID ${orderId} not found`);
+      // If no order is found
+      if (!order) {
+        throw new NotFoundException(`Order with ID ${orderId} not found`);
+      }
+
+      // Delete the order from the database
+      await this.ordersRepository.delete(orderId);
+      // No need to return anything, as we are using 204 No Content in the controller
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Could not retrieve order: ${error.message}`,
+      );
     }
-
-    // Delete the order from the database
-    await this.ordersRepository.delete(orderId);
-    // No need to return anything, as we are using 204 No Content in the controller
   }
 }
