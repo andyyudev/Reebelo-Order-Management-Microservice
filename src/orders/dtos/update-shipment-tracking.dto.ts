@@ -3,9 +3,9 @@ import { IsString, IsNotEmpty } from 'class-validator';
 export class UpdateShipmentTrackingDto {
   @IsString()
   @IsNotEmpty()
-  carrier: string; // The carrier handling the shipment (e.g., FedEx, UPS)
+  carrier: string;
 
   @IsString()
   @IsNotEmpty()
-  trackingNumber: string; // The tracking number for the shipment
+  trackingNumber: string;
 }

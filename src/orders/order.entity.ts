@@ -4,36 +4,36 @@ import { OrderItem } from './order-item.entity';
 @Entity()
 export class Order {
   @PrimaryGeneratedColumn('uuid')
-  id: string; // Unique ID for the orderz
+  id: string;
 
   @Column()
-  storeId: string; // Store ID for the order
+  storeId: string;
 
   @Column()
-  customerId: string; // Customer ID for the order
+  customerId: string;
 
   @Column('decimal')
-  itemsTotal: number; // Total price of items
+  itemsTotal: number;
 
   @Column('decimal')
-  shippingCost: number; // Shipping cost
+  shippingCost: number;
 
   @Column('decimal')
-  taxAmount: number; // Tax amount
+  taxAmount: number;
 
   @Column('decimal')
-  totalAmount: number; // Total amount including items, shipping, and tax
+  totalAmount: number;
 
   @Column({ default: 'pending' })
-  status: string; // Order status, defaulting to 'pending'
+  status: string;
 
   @Column({ unique: true, nullable: true })
   idempotencyKey: string;
 
   @OneToMany(() => OrderItem, (orderItem) => orderItem.order, { cascade: true })
-  items: OrderItem[]; // One-to-many relationship with OrderItem
+  items: OrderItem[];
 
-  @Column('json', { nullable: true }) // Shipment details stored as JSON
+  @Column('json', { nullable: true })
   shipment: {
     carrier: string;
     trackingNumber: string;

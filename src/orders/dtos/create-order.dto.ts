@@ -8,7 +8,6 @@ import {
 import { Type } from 'class-transformer';
 
 class OrderItemDto {
-  // Represents individual items in the order
   @IsString()
   @IsNotEmpty()
   productId: string;
@@ -25,33 +24,33 @@ class OrderItemDto {
 export class CreateOrderDto {
   @IsString()
   @IsNotEmpty()
-  storeId: string; // Store ID, to match the Order entity
+  storeId: string;
 
   @IsString()
   @IsNotEmpty()
-  customerId: string; // Customer ID, to match the Order entity
+  customerId: string;
 
   @IsString()
-  idempotencyKey?: string; // Idempotency key to prevent duplicate orders
+  idempotencyKey?: string;
 
   @IsNumber()
   @IsNotEmpty()
-  itemsTotal: number; // Total price of items before taxes and shipping
+  itemsTotal: number;
 
   @IsNumber()
   @IsNotEmpty()
-  shippingCost: number; // Shipping cost for the order
+  shippingCost: number;
 
   @IsNumber()
   @IsNotEmpty()
-  taxAmount: number; // Tax amount for the order
+  taxAmount: number;
 
   @IsNumber()
   @IsNotEmpty()
-  totalAmount: number; // Total amount including items, tax, and shipping
+  totalAmount: number;
 
   @IsString()
-  status: string = 'pending'; // Order status (optional, defaults to 'pending')
+  status: string = 'pending';
 
   @IsArray()
   @ValidateNested({ each: true })
