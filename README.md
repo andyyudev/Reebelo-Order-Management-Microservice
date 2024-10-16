@@ -42,7 +42,7 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-### Run tests
+### Run tests (Not Implemented)
 
 ```bash
 # unit tests
@@ -70,32 +70,93 @@ Out of scope for this case study, but worth mentioning
 ## API Endpoints
 
 - Create Orders
-  - Implement idempotency to handle race condition.
-  - Retries for calling external services. (Not implemented)
-  - Validate customer information. (Mock service)
-  - Validate inventory information. (Mock service)
+  - Endpoint: POST /orders
+  - URL: http://localhost:3000/orders
+  - Request Headers:
+    - Content-Type: application/json
+    - idempotency-key: (Optional) Unique key to ensure idempotency of the request.
+  - Request Body (Example):
+    ```js
+    {  
+      "storeId": "s456",
+      "customerId": "c123",
+      "idempotencyKey": "12345",
+      "itemsTotal": 100.00,
+      "shippingCost": 10.00,
+      "taxAmount": 5.00,
+      "totalAmount": 115.00,
+      // Billing information not implemented
+      // Shipping information not implemented
+      "items": [
+        {
+          "productId": "p456",
+          "quantity": 2,
+          "price": 25.00
+        },
+        {
+          "productId": "p789",
+          "quantity": 2,
+          "price": 50.00
+        }
+      ]
+    }
+    ```
+  - Functionality
+    - Implement idempotency to handle race condition.
+    - Validate customer information. (Mock service)
+    - Validate inventory information. (Mock service)
+    - Retries for calling external services. (Not implemented)
 
-- Update Orders
-  - Following the single responsibility principle, I would break down the order update process into multiple methods.
-    - Update payment information. (Added endpoint, but returns error message)
-    - Update shipping information. (Added endpoint, but returns error message)
-    - Update shipment tracking information.
-    - ** I would remove the update status endpoint to prevent direct manipulation, ensuring status changes are triggered by specific business events only. **
-  - Handle order status conflicts when order information is updated or the order has been deleted.
-  - Trigger an order status update when order information changes.
-  - Trigger notification service. (Not implemented)
+- Update Orders (Update Shipping Tracking)
+  - Endpoint: PUT /orders/:id/shipment/tracking
+  - URL: http://localhost:3000/orders/:id/shipment/tracking
+  - Request Headers:
+    - Content-Type: application/json
+  - Request Body (Example):
+    ```js
+    {
+      "carrier": "FedEx",
+      "trackingNumber": "123456789"
+    }
+    ```
+  - Functionality
+    - Following the single responsibility principle, I would break down the order update process into multiple methods.
+      - Update payment information. (Added endpoint, but returns error message)
+      - Update shipping information. (Added endpoint, but returns error message)
+      - Update shipment tracking information.
+      - ** I would remove the update status endpoint to prevent direct manipulation, ensuring status changes are triggered by specific business events only. **
+    - Trigger an order status update when order information changes.
+    - Handle order status conflicts when order information is updated or the order has been deleted. (Not implemented)
+    - Trigger notification service. (Not implemented)
 
 - Update Order Status
-  - ** I would remove the update status endpoint to prevent direct manipulation, ensuring status changes are triggered by specific business events only. **
-  - Trigger notification service. (Not implemented)
+  - Endpoint: PUT /orders/:id/status
+  - URL: http://localhost:3000/orders/:id/status
+  - Request Headers:
+    - Content-Type: application/json
+  - Request Body (Example):
+    ```js
+    {
+      "status": "pending"
+    }
+    ```
+  - Functionality
+    - ** I would remove the update status endpoint to prevent direct manipulation, ensuring status changes are triggered by specific business events only. **
+    - Trigger notification service. (Not implemented)
 
 - Delete Orders
-  - Return http status code 204 after successful deletion, current NestJS returns standard 200 status.
-  - Implement soft delete to maintain data integrity. (Not implemented)
+  - Endpoint: DELETE /orders/:id
+  - URL: http://localhost:3000/orders/:id
+  - Request Headers:
+    - Content-Type: application/json
+  - Request Body (None)
+  - Functionality
+    - Return http status code 204 after successful deletion, current NestJS returns standard 200 status.
+    - Implement soft delete to maintain data integrity. (Not implemented)
 
 ## Service Dependencies
 
-- This microservice relies on the following external services:
+- This microservice relies on the following external services through API requests:
   - Customer Service
     - Fetches customer details, including payment and shipping information.
   - Inventory Service
@@ -108,6 +169,8 @@ Out of scope for this case study, but worth mentioning
     - Sends email and app notifications related to orders.
 
 ## Infrastructure & Deployment Strategies
+
+Here are some recommendations for deploying the service to AWS cloud services. However, depending on specific requirements, adjustments may be needed.
 
 ### Compute
 
@@ -158,3 +221,7 @@ Use Amazon SQS to offload asynchronous tasks such as payment processing, shippin
 ### Caching
 
 Use caching (e.g., ElastiCache Redis) for frequently accessed data like inventory, customer details, and order statuses to reduce load and improve response times.
+
+## Limitations and future works
+
+This is just a simple demo. For actual production deployment, several factors need to be considered, including unit testing, data validation, API security, rate limiting, inter-service retries, caching, and message queues. Each API endpoint may have different scaling requirements. Some asynchronous services may only require eventual consistency, while others may prioritize availability, consistency, or partition tolerance.
